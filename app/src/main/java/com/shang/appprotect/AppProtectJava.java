@@ -1,6 +1,7 @@
 package com.shang.appprotect;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.util.Log;
@@ -11,9 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.List;
 
 class AppProtectJava implements IAppProtect {
-    private static final String TAG="DEBUG_JAVA";
+    private static final String TAG = "DEBUG_JAVA";
 
     @Override
     public boolean shaKeyCompare(@NotNull Context context) {
@@ -72,17 +74,17 @@ class AppProtectJava implements IAppProtect {
     @Override
     public boolean assetsCheck(Context context) {
         try {
-            for(String fileName : context.getAssets().list("")){
+            for (String fileName : context.getAssets().list("")) {
                 if (fileName.endsWith("so")) {
-                    Log.d(TAG,"assets找到奇怪的so檔");
+                    Log.d(TAG, "assets找到奇怪的so檔");
                     return false;
                 }
-                if (fileName .equals("couldinject") ) {
-                    Log.d(TAG,"assets找到couldinject");
+                if (fileName.equals("couldinject")) {
+                    Log.d(TAG, "assets找到couldinject");
                     return false;
                 }
                 if (fileName.endsWith("apk")) {
-                    Log.d(TAG,"assets找到奇怪的apk檔");
+                    Log.d(TAG, "assets找到奇怪的apk檔");
                     return false;
                 }
             }
@@ -94,16 +96,25 @@ class AppProtectJava implements IAppProtect {
     }
 
     @Override
+    public boolean findAppHookName(Context context) {
+        List<ApplicationInfo> applicationInfos = context.getPackageManager().getInstalledApplications(PackageManager.GET_META_DATA);
+        for (ApplicationInfo applicationInfo : applicationInfos) {
+            if (applicationInfo.packageName.equals("de.robv.android.xposed.installer")) {
+                Log.d(TAG, "findAppHookName 找到xposed");
+                return false;
+            }
+            if (applicationInfo.processName.equals("com.saurik.substrate")) {
+                Log.d(TAG, "findAppHookName 找到Cydia");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public boolean isVA() {
         return false;
     }
-
-
-    @Override
-    public boolean findAppHookName() {
-        return false;
-    }
-
 
 
     @Override

@@ -6,8 +6,8 @@ interface IAppProtect {
     fun shaKeyCompare(context:Context): Boolean
     fun libSoCountCheck(context:Context): Boolean
     fun assetsCheck(context:Context): Boolean
-    fun findAppHookName(): Boolean
-    fun isVA(): Boolean
+    fun findAppHookName(context:Context): Boolean
     fun applicationNameCheck(): Boolean
+    fun isVA(): Boolean
     fun dexSize(): String
 }

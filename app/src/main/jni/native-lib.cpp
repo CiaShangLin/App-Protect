@@ -14,9 +14,11 @@ Java_com_shang_appprotect_AppProtect_helloJni(JNIEnv *env, jclass clazz) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_shang_appprotect_AppProtect_shaKeyCompare(JNIEnv *env, jclass clazz,jobject context_object) {
-    const char* myKey = "A3584A3A4F16FFD4811ACF6258BE0EA6DD8C31C3";
-    const char hexcode[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+Java_com_shang_appprotect_AppProtect_shaKeyCompare(JNIEnv *env, jclass clazz,
+                                                   jobject context_object) {
+    const char *myKey = "A3584A3A4F16FFD4811ACF6258BE0EA6DD8C31C3";
+    const char hexcode[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+                            'E', 'F'};
     jclass context_class = env->GetObjectClass(context_object);
 
     //Java Reflection to get PackageManager
@@ -103,7 +105,7 @@ Java_com_shang_appprotect_AppProtect_shaKeyCompare(JNIEnv *env, jclass clazz,job
     }
     hex_sha[array_size * 2] = '\0';
 
-    LOGD("sha1:%s",hex_sha);
+    LOGD("sha1:%s", hex_sha);
 
     return static_cast<jboolean>(strcmp(hex_sha, myKey) == 0);
 }
@@ -217,4 +219,59 @@ Java_com_shang_appprotect_AppProtect_assetsCheck(JNIEnv *env, jclass clazz, jobj
     env->DeleteLocalRef(String_Class);
 
     return ckeck;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_shang_appprotect_AppProtect_findAppHookName(JNIEnv *env, jclass clazz, jobject context) {
+    jclass Context_Class = env->GetObjectClass(context);
+    jmethodID getPackageManager = env->GetMethodID(Context_Class, "getPackageManager",
+                                                   "()Landroid/content/pm/PackageManager;");
+    jobject packageManager = env->CallObjectMethod(context, getPackageManager);
+
+    jclass PackageManager_Class = env->GetObjectClass(packageManager);
+    jmethodID getInstalledApplications = env->GetMethodID(PackageManager_Class,
+                                                          "getInstalledApplications",
+                                                          "(I)Ljava/util/List;");
+    jobject applicationInfoList = env->CallObjectMethod(packageManager, getInstalledApplications,
+                                                        0x00000080);
+
+    jclass List_Class = env->GetObjectClass(applicationInfoList);
+    jmethodID size_ID = env->GetMethodID(List_Class, "size", "()I");
+    jmethodID get_ID = env->GetMethodID(List_Class, "get", "(I)Ljava/lang/Object;");
+
+    jint size = env->CallIntMethod(applicationInfoList, size_ID);
+
+    jboolean check = true;
+    for (int i = 0; i < size; i++) {
+        jobject application = env->CallObjectMethod(applicationInfoList, get_ID, i);
+        jclass Application_Class = env->GetObjectClass(application);
+        jfieldID packageName_ID = env->GetFieldID(Application_Class, "packageName",
+                                                  "Ljava/lang/String;");
+        jstring packageName = (jstring) env->GetObjectField(application, packageName_ID);
+
+        const char *name = env->GetStringUTFChars(packageName, 0);
+
+        //有裝xpose
+        if (strcmp(name, "de.robv.android.xposed.installer") == 0) {
+            check = false;
+        }
+
+        //有裝Cydia
+        if (strcmp(name, "com.saurik.substrate") == 0) {
+            check = false;
+        }
+        env->ReleaseStringUTFChars(packageName, name);
+        env->DeleteLocalRef(application);
+        env->DeleteLocalRef(Application_Class);
+    }
+    //LOGD("find:%d", find);
+    env->DeleteLocalRef(context);
+    env->DeleteLocalRef(Context_Class);
+    env->DeleteLocalRef(packageManager);
+    env->DeleteLocalRef(PackageManager_Class);
+    env->DeleteLocalRef(applicationInfoList);
+    env->DeleteLocalRef(List_Class);
+
+    return check;
 }

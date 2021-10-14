@@ -86,15 +86,24 @@ class AppProtectKt : IAppProtect {
         return true
     }
 
+    override fun findAppHookName(context:Context): Boolean {
+        val applicationInfo = context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        applicationInfo.forEach {
+            if(it.packageName == "de.robv.android.xposed.installer"){
+                Log.d(TAG,"findAppHookName 找到xposed")
+                return false
+            }
+            if(it.processName == "com.saurik.substrate"){
+                Log.d(TAG,"findAppHookName 找到Cydia")
+                return false
+            }
+        }
+        return true
+    }
 
     override fun isVA(): Boolean {
         TODO("Not yet implemented")
     }
-
-    override fun findAppHookName(): Boolean {
-        TODO("Not yet implemented")
-    }
-
 
     override fun applicationNameCheck(): Boolean {
         TODO("Not yet implemented")

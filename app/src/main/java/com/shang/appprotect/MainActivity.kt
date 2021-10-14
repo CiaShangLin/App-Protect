@@ -27,8 +27,10 @@ class MainActivity : AppCompatActivity() {
             .append("libSoCountCheck : ${AppProtect.libSoCountCheck(this)}")
             .append("\n")
             .append("assetsCheck : ${AppProtect.assetsCheck(this)}")
+            .append("\n")
+            .append("findAppHookName : ${AppProtect.findAppHookName(this)}")
+
         tvKt = findViewById(R.id.tvKt)
         tvKt.text = strKt.toString()
-
     }
 }
