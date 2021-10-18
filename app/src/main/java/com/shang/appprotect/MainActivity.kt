@@ -29,6 +29,10 @@ class MainActivity : AppCompatActivity() {
             .append("assetsCheck : ${AppProtect.assetsCheck(this)}")
             .append("\n")
             .append("findAppHookName : ${AppProtect.findAppHookName(this)}")
+            .append("\n")
+            .append("applicationNameCheck : ${AppProtect.applicationNameCheck(this)}")
+            .append("\n")
+            .append("isVa : ${AppProtect.isVA(this)}")
 
         tvKt = findViewById(R.id.tvKt)
         tvKt.text = strKt.toString()

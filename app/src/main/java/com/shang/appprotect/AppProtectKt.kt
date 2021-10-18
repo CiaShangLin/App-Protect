@@ -86,31 +86,51 @@ class AppProtectKt : IAppProtect {
         return true
     }
 
-    override fun findAppHookName(context:Context): Boolean {
-        val applicationInfo = context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+    override fun findAppHookName(context: Context): Boolean {
+        val applicationInfo =
+            context.packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
         applicationInfo.forEach {
-            if(it.packageName == "de.robv.android.xposed.installer"){
-                Log.d(TAG,"findAppHookName 找到xposed")
+            if (it.packageName == "de.robv.android.xposed.installer") {
+                Log.d(TAG, "findAppHookName 找到xposed")
                 return false
             }
-            if(it.processName == "com.saurik.substrate"){
-                Log.d(TAG,"findAppHookName 找到Cydia")
+            if (it.processName == "com.saurik.substrate") {
+                Log.d(TAG, "findAppHookName 找到Cydia")
                 return false
             }
         }
         return true
     }
 
-    override fun isVA(): Boolean {
-        TODO("Not yet implemented")
+    override fun applicationNameCheck(context: Context): Boolean {
+        val packageName = context.packageName
+        val info = context.packageManager.getApplicationInfo(packageName, 0)
+        return info.className == "com.shang.appprotect.AppProtectApplication"
     }
 
-    override fun applicationNameCheck(): Boolean {
-        TODO("Not yet implemented")
-    }
-
-
-    override fun dexSize(): String {
-        TODO("Not yet implemented")
+    override fun isVA(context: Context): Boolean {
+        val virtualPkgs = arrayOf(
+            "com.bly.dkplat",                        //多开分身
+            "dkplugin.pke.nnp",                      //當初複製來的就有了,但app可能消失了吧
+            "com.by.chaos",                          //當初複製來的就有了,但app可能消失了吧
+            "com.lbe.parallel",                      //LBE平行空間
+            "com.excelliance.dualaid",               //双开助手
+            "com.excelliance.dualaid.b64",           //双开助手 64bit
+            "com.lody.virtual",                      //VirtualApp這個應該是libary
+            "com.qihoo.magic",                       //分身大师
+            "multi.parallel.dualspace.cloner",       //多開空間
+            "com.polar.apps.dual.multi.accounts",    //Multi Accounts
+            "com.lbe.parallel.intl",                 //Parallel Space
+            "com.lbe.parallel.intl.arm64",           //Parallel Space - 64Bit Support
+            "com.applisto.appcloner",                //App Cloner
+            "com.cloneapp.parallelspace.dualspace",  //Clone App
+        )
+        virtualPkgs.forEach {
+            if (context.filesDir.path.contains(it)) {
+                Log.d(TAG,"isVA find $it")
+                return true
+            }
+        }
+        return false
     }
 }

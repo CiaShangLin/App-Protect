@@ -12,4 +12,8 @@ class AppProtect {
     public static native boolean assetsCheck(Context context);
 
     public static native boolean findAppHookName(Context context);
+
+    public static native boolean applicationNameCheck(Context context);
+
+    public static native boolean isVA(Context context);
 }

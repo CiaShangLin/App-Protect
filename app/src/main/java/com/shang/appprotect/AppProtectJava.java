@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class AppProtectJava implements IAppProtect {
@@ -112,20 +113,42 @@ class AppProtectJava implements IAppProtect {
     }
 
     @Override
-    public boolean isVA() {
+    public boolean applicationNameCheck(Context context) {
+        try {
+            String packageName = context.getPackageName();
+            ApplicationInfo info = context.getPackageManager().getApplicationInfo(packageName, 0);
+            return info.className.equals("com.shang.appprotect.AppProtectApplication");
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
         return false;
     }
 
-
     @Override
-    public boolean applicationNameCheck() {
+    public boolean isVA(Context context) {
+        ArrayList<String> virtualPkgs = new ArrayList<String>();
+        virtualPkgs.add("com.bly.dkplat");
+        virtualPkgs.add("dkplugin.pke.nnp");
+        virtualPkgs.add("com.by.chaos");
+        virtualPkgs.add("com.excelliance.dualaid");
+        virtualPkgs.add("com.excelliance.dualaid.b64");
+        virtualPkgs.add("com.lody.virtual");
+        virtualPkgs.add("com.qihoo.magic");
+        virtualPkgs.add("multi.parallel.dualspace.cloner");
+        virtualPkgs.add("com.polar.apps.dual.multi.accounts");
+        virtualPkgs.add("com.lbe.parallel.intl");
+        virtualPkgs.add("com.lbe.parallel.intl.arm64");
+        virtualPkgs.add("com.applisto.appcloner");
+        virtualPkgs.add("com.applisto.appcloner");
+        virtualPkgs.add("com.cloneapp.parallelspace.dualspace");
+
+        String path = context.getFilesDir().getPath();
+        for (String pkgs : virtualPkgs) {
+            if (path.contains(pkgs)) {
+                Log.d(TAG, "isVA find " + pkgs);
+                return true;
+            }
+        }
         return false;
-    }
-
-
-    @NotNull
-    @Override
-    public String dexSize() {
-        return null;
     }
 }

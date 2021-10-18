@@ -7,7 +7,6 @@ interface IAppProtect {
     fun libSoCountCheck(context:Context): Boolean
     fun assetsCheck(context:Context): Boolean
     fun findAppHookName(context:Context): Boolean
-    fun applicationNameCheck(): Boolean
-    fun isVA(): Boolean
-    fun dexSize(): String
+    fun applicationNameCheck(context: Context): Boolean
+    fun isVA(context: Context): Boolean
 }

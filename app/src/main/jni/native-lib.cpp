@@ -275,3 +275,97 @@ Java_com_shang_appprotect_AppProtect_findAppHookName(JNIEnv *env, jclass clazz, 
 
     return check;
 }
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_shang_appprotect_AppProtect_applicationNameCheck(JNIEnv *env, jclass clazz,
+                                                          jobject context) {
+    jclass context_class = env->GetObjectClass(context);
+    jmethodID methodId = env->GetMethodID(context_class, "getPackageManager",
+                                          "()Landroid/content/pm/PackageManager;");
+    jobject package_manager = env->CallObjectMethod(context, methodId);   //取得PackageManager
+
+    methodId = env->GetMethodID(context_class, "getPackageName", "()Ljava/lang/String;");
+    jstring package_name = (jstring) env->CallObjectMethod(context, methodId);   //取得PackageName
+
+    jclass pack_manager_class = env->GetObjectClass(package_manager);
+    methodId = env->GetMethodID(pack_manager_class, "getApplicationInfo",
+                                "(Ljava/lang/String;I)Landroid/content/pm/ApplicationInfo;");
+    jobject package_info = env->CallObjectMethod(package_manager, methodId, package_name,
+                                                 0);  //取得PackageInfo
+
+    jclass package_info_class = env->GetObjectClass(package_info);
+    jfieldID jfieldId = env->GetFieldID(package_info_class, "className", "Ljava/lang/String;");
+    jstring className = (jstring) env->GetObjectField(package_info, jfieldId);
+
+
+    jboolean app =
+            strcmp(env->GetStringUTFChars(className, 0), "com.shang.appprotect.AppProtectApplication") == 0;
+
+    env->DeleteLocalRef(context);
+    env->DeleteLocalRef(context_class);
+    env->DeleteLocalRef(package_manager);
+    env->DeleteLocalRef(pack_manager_class);
+    env->DeleteLocalRef(package_info);
+    env->DeleteLocalRef(package_info_class);
+
+    return app;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_shang_appprotect_AppProtect_isVA(JNIEnv *env, jclass clazz, jobject context) {
+    const char *virtualPkgs[14] ={
+            "com.bly.dkplat",                        //多开分身
+            "dkplugin.pke.nnp",                      //當初複製來的就有了,但app可能消失了吧
+            "com.by.chaos",                          //當初複製來的就有了,但app可能消失了吧
+            "com.lbe.parallel",                      //LBE平行空間
+            "com.excelliance.dualaid",               //双开助手
+            "com.excelliance.dualaid.b64",           //双开助手 64bit
+            "com.lody.virtual",                      //VirtualApp這個應該是libary
+            "com.qihoo.magic",                       //分身大师
+            "multi.parallel.dualspace.cloner",       //多開空間
+            "com.polar.apps.dual.multi.accounts",    //Multi Accounts
+            "com.lbe.parallel.intl",                //Parallel Space
+            "com.lbe.parallel.intl.arm64",          //Parallel Space - 64Bit Support
+            "com.applisto.appcloner",               //App Cloner
+            "com.cloneapp.parallelspace.dualspace" //Clone App
+    };
+
+    bool isMultiApp = false;
+
+    jclass contextClass = env->GetObjectClass(context);
+    jmethodID filesDir = env->GetMethodID(contextClass, "getFilesDir", "()Ljava/io/File;");
+    jobject file = env->CallObjectMethod(context, filesDir);
+
+    jclass fileClass = env->FindClass("java/io/File");
+    jmethodID getPath = env->GetMethodID(fileClass, "getPath", "()Ljava/lang/String;");
+
+    jstring path = (jstring) env->CallObjectMethod(file, getPath);
+
+    const char *cPath = env->GetStringUTFChars(path, NULL);
+
+    if (cPath == NULL) {
+        env->DeleteLocalRef(contextClass);
+        env->DeleteLocalRef(file);
+        env->DeleteLocalRef(fileClass);
+        return false;
+    }
+
+    for (int i = 0; i < 14; i++) {
+        if (strstr(cPath, virtualPkgs[i]) != NULL) {
+            isMultiApp = true;
+            env->DeleteLocalRef(contextClass);
+            env->DeleteLocalRef(file);
+            env->DeleteLocalRef(fileClass);
+            env->ReleaseStringUTFChars(path, cPath);
+            return isMultiApp;
+        }
+    }
+
+    env->DeleteLocalRef(contextClass);
+    env->DeleteLocalRef(file);
+    env->DeleteLocalRef(fileClass);
+    env->ReleaseStringUTFChars(path, cPath);
+    return isMultiApp;
+}
